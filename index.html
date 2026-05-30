@@ -256,8 +256,54 @@ function loadMessages(){
     orderBy("createdAt", "desc")
   );
 
+  let firstLoad = true;
+
+function loadMessages(){
+  const messagesList = document.getElementById("messagesList");
+
+  const q = query(
+    collection(db, "messages"),
+    orderBy("createdAt", "desc")
+  );
+
   onSnapshot(q, (snapshot) => {
+
+    if(!firstLoad){
+      snapshot.docChanges().forEach((change) => {
+        if(change.type === "added"){
+          alert("📩 Ada pesan baru masuk!");
+        }
+      });
+    }
+
+    firstLoad = false;
+
     messagesList.innerHTML = "";
+
+    if(snapshot.empty){
+      messagesList.innerHTML = "<p>Belum ada pesan masuk.</p>";
+      return;
+    }
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      let tanggal = "Belum ada tanggal";
+      if(data.createdAt){
+        tanggal = data.createdAt.toDate().toLocaleString("id-ID");
+      }
+
+      messagesList.innerHTML += `
+        <div style="background:rgba(255,255,255,.08); padding:20px; border-radius:15px; margin-top:15px;">
+          <h3>${data.name}</h3>
+          <p><b>Email:</b> ${data.email}</p>
+          <p><b>Pesan:</b><br>${data.message}</p>
+          <small>${tanggal}</small>
+        </div>
+      `;
+    });
+  });
+}
 
     if(snapshot.empty){
       messagesList.innerHTML = "<p>Belum ada pesan masuk.</p>";
