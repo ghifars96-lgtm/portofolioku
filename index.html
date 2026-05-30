@@ -94,6 +94,19 @@
   </style>
 </head>
 
+  <div id="adminLoginBox" style="display:none; padding:30px;">
+  <h2>Login Admin</h2>
+  <input type="email" id="adminEmail" placeholder="Email admin">
+  <input type="password" id="adminPassword" placeholder="Password admin">
+  <button onclick="loginAdmin()">Login</button>
+</div>
+
+<div id="adminPanel" style="display:none; padding:30px;">
+  <h2>Pesan Masuk</h2>
+  <button onclick="logoutAdmin()">Logout</button>
+  <div id="messagesList"></div>
+</div>
+  
 <body>
 
   <audio id="bgMusic" autoplay loop>
@@ -158,8 +171,10 @@
       </div>
 
       <footer class="reveal">
-        © 2026 Azka Salman Al Ghifari — Personal Portfolio
-      </footer>
+  © 2026 Azka Salman Al Ghifari — Personal Portfolio
+  <br><br>
+  <button onclick="showAdminLogin()">Admin Login</button>
+</footer>>
 
     </div>
   </div>
@@ -167,7 +182,22 @@
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+ import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  serverTimestamp,
+  query,
+  orderBy,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAqD2qd2Jg2IKvXRWUTQhitBiwt_8dwgmo",
@@ -181,7 +211,78 @@
 
   const app = initializeApp(firebaseConfig);
   getAnalytics(app);
-  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+window.showAdminLogin = function(){
+  document.getElementById("adminLoginBox").style.display = "block";
+}
+
+window.loginAdmin = async function(){
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value.trim();
+
+  if(!email || !password){
+    alert("Email dan password wajib diisi!");
+    return;
+  }
+
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Login berhasil!");
+  }catch(error){
+    alert("Login gagal: " + error.message);
+  }
+}
+
+window.logoutAdmin = async function(){
+  await signOut(auth);
+}
+
+onAuthStateChanged(auth, (user) => {
+  if(user){
+    document.getElementById("adminLoginBox").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    loadMessages();
+  }else{
+    document.getElementById("adminPanel").style.display = "none";
+  }
+});
+
+function loadMessages(){
+  const messagesList = document.getElementById("messagesList");
+
+  const q = query(
+    collection(db, "messages"),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, (snapshot) => {
+    messagesList.innerHTML = "";
+
+    if(snapshot.empty){
+      messagesList.innerHTML = "<p>Belum ada pesan masuk.</p>";
+      return;
+    }
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      let tanggal = "Belum ada tanggal";
+      if(data.createdAt){
+        tanggal = data.createdAt.toDate().toLocaleString("id-ID");
+      }
+
+      messagesList.innerHTML += `
+        <div style="background:rgba(255,255,255,.08); padding:20px; border-radius:15px; margin-top:15px;">
+          <h3>${data.name}</h3>
+          <p><b>Email:</b> ${data.email}</p>
+          <p><b>Pesan:</b><br>${data.message}</p>
+          <small>${tanggal}</small>
+        </div>
+      `;
+    });
+  });
+}
 
   window.sendMessage = async function () {
     const name = document.getElementById("name").value.trim();
