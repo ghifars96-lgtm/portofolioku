@@ -165,52 +165,53 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAqD2qd2Jg2IKvXRWUTQhitBiwt_8dwgmo",
-      authDomain: "buatporto-bc8ba.firebaseapp.com",
-      projectId: "buatporto-bc8ba",
-      storageBucket: "buatporto-bc8ba.firebasestorage.app",
-      messagingSenderId: "465498359041",
-      appId: "1:465498359041:web:b3c65254bfeb364dd94700",
-      measurementId: "G-K3NPF672C1"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAqD2qd2Jg2IKvXRWUTQhitBiwt_8dwgmo",
+    authDomain: "buatporto-bc8ba.firebaseapp.com",
+    projectId: "buatporto-bc8ba",
+    storageBucket: "buatporto-bc8ba.firebasestorage.app",
+    messagingSenderId: "465498359041",
+    appId: "1:465498359041:web:177aba2e73ccec0ed94700",
+    measurementId: "G-BCD6P4TQDP"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    getAnalytics(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  getAnalytics(app);
+  const db = getFirestore(app);
 
-    window.sendMessage = async function(){
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const message = document.getElementById("message").value.trim();
+  window.sendMessage = async function () {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const message = document.getElementById("message").value.trim();
 
-      if(name === "" || email === "" || message === ""){
-        alert("Isi semua form dulu ya!");
-        return;
-      }
+    if (!name || !email || !message) {
+      alert("Isi semua form dulu ya!");
+      return;
+    }
 
-      try{
-        await addDoc(collection(db, "messages"), {
-          name: name,
-          email: email,
-          message: message,
-          createdAt: serverTimestamp()
-        });
+    try {
+      await addDoc(collection(db, "messages"), {
+        name,
+        email,
+        message,
+        createdAt: serverTimestamp()
+      });
 
-        alert("Pesan berhasil dikirim!");
-        document.getElementById("name").value = "";
-        document.getElementById("email").value = "";
-        document.getElementById("message").value = "";
+      alert("Pesan berhasil dikirim ke database!");
+      document.getElementById("name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("message").value = "";
 
-      }catch(error){
-        alert("Pesan gagal dikirim: " + error.message);
-      }
-    };
-  </script>
+    } catch (error) {
+      alert("Gagal mengirim pesan: " + error.message);
+      console.error(error);
+    }
+  };
+</script>
 
   <script>
     const reveals = document.querySelectorAll(".reveal");
